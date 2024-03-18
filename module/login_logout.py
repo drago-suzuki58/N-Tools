@@ -12,21 +12,35 @@ def make_session():
 
 def login(session):
     config = configparser.ConfigParser()
-    config.read('config.ini')
+    config.read('config/config.ini')
 
     loginId = config['id']['loginId']
     password = config['id']['password']
 
     session.get('https://secure.nnn.ed.jp/mypage/?url=%2Fhome%3F')
-    WebDriverWait(session, 5).until(EC.presence_of_element_located((By.NAME, 'loginId')))
+    try:
+        WebDriverWait(session, 5).until(EC.presence_of_element_located((By.NAME, 'loginId')))
+        session.find_element(By.NAME, 'loginId').send_keys(loginId)
+        session.find_element(By.NAME, 'password').send_keys(password)
+        session.find_element(By.CLASS_NAME, 'student-button').click()
+    except:
+        print('login page not found... retrying...')
+        login(session)
 
-    session.find_element(By.NAME, 'loginId').send_keys(loginId)
-    session.find_element(By.NAME, 'password').send_keys(password)
-    session.find_element(By.CLASS_NAME, 'student-button').click()
+    try:
+        WebDriverWait(session, 5).until(EC.presence_of_element_located((By.CLASS_NAME, 'logout')))
+    except:
+        print('login failed... retrying...')
+        login(session)
 
-    WebDriverWait(session, 10).until(EC.presence_of_element_located((By.CLASS_NAME, 'logout')))
+    print(session.page_source) #! debug
 
-    print(session.page_source)
+def yobiko_login(session):
+    session.get('https://www.nnn.ed.nico/oauth_login?next_url=https://www.nnn.ed.nico/home&amp;target_type=n_high_school_mypage')
+
+    print(session.page_source) #! debug
 
 def logout(driver):
+    driver.get('https://secure.nnn.ed.jp/mypage/logout')
+    driver.get('https://www.nnn.ed.nico/logout')
     driver.quit()
