@@ -4,10 +4,12 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import configparser
+import requests
 
 def make_session():
     webdriver_service = Service(r'chrome\\chromedriver.exe')
     session = webdriver.Chrome(service=webdriver_service)
+    session.set_window_size(600, 400)
     return session
 
 def login(session):
@@ -44,3 +46,18 @@ def logout(driver):
     driver.get('https://secure.nnn.ed.jp/mypage/logout')
     driver.get('https://www.nnn.ed.nico/logout')
     driver.quit()
+
+def to_requests():
+    session = make_session()
+    login(session)
+    yobiko_login(session)
+
+    cookies = session.get_cookies()
+    s = requests.Session()
+
+    for cookie in cookies:
+        s.cookies.set(cookie['name'], cookie['value'])
+
+    print(s.get('https://api.nnn.ed.nico/v1/users').text)#! debug(ログイン情報の取得)
+
+    return s
