@@ -31,6 +31,7 @@ def get_length(s, course_id, chapter_id):
     response = s.get(f'https://api.nnn.ed.nico/v2/material/courses/{course_id}/chapters/{chapter_id}')
     response_info = json.loads(response.content)
     lengths = []
+    print(response_info)#! debug
     for response in response_info['chapter']['sections']:
         if response['resource_type'] == 'movie' and response['material_type'] == material_type:
             lengths.append(response['length'])
@@ -54,5 +55,24 @@ def get_all_chapter_length(s):
             length = get_length(s, course[0], chapter[0])
             result.append((course[1], chapter[1], length))
         result.append(('','',''))
+
+    return result
+
+def get_all_chapter_question(s):
+    course_list = get_course_list(s)
+    result = []  # 結果を保存するリスト
+
+    for course in course_list:
+        chapter_list = get_chapter_list(s, course[0])
+        for chapter in chapter_list:
+            response = s.get(f'https://api.nnn.ed.nico/v2/material/courses/{course[0]}/chapters/{chapter[0]}')
+            print(response.text)#! debug
+            response_info = json.loads(response.content)
+            if 'resource_type' != 'movie':
+                total_question = 0
+                for section in response_info['chapter']['sections']:
+                    if 'total_question' in section:
+                        total_question += section['total_question']
+                result.append((course[1], chapter[1], total_question))
 
     return result
